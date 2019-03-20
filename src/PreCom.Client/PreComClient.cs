@@ -15,6 +15,16 @@ namespace PreCom
         readonly JsonSerializer serializer = JsonSerializer.CreateDefault();
         readonly HttpClient httpClient;
 
+        public static readonly string[] HourKeys = GenerateHourKeys();
+
+        static string[] GenerateHourKeys()
+        {
+            var hourKeys = new string[24];
+            for (var i = 0; i < 24; i++) hourKeys[i] = "Hour" + i;
+            return hourKeys;
+        }
+
+
         public PreComClient(HttpClient httpClient)
         {
             this.httpClient = httpClient;
