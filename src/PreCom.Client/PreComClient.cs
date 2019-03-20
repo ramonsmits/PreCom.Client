@@ -8,7 +8,6 @@ using Newtonsoft.Json;
 
 namespace PreCom
 {
-    // group.SchedulerDays[4] = true;
     public class PreComClient
     {
         const string UserAgent = "PreComClient/1.0";
@@ -26,7 +25,6 @@ namespace PreCom
 
         public async Task<LoginResponse> Login(string username, string password)
         {
-            // Content-Type: application/x-www-form-urlencoded
             var nvc = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("grant_type", "password"),
@@ -48,7 +46,6 @@ namespace PreCom
             }
         }
 
-        //http://www.pre-com.nl/Mobile/Help/Api/GET-api-User-GetUserInfo
         public Task<User> GetUserInfo()
         {
             return Get<User>(UrlBase + "api/User/GetUserInfo");
