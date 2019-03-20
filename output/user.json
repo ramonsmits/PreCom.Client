@@ -1,0 +1,56 @@
+{
+  "UserID": 1,
+  "HomeNodeID": 2,
+  "FullName": "sample string 3",
+  "LangID": 4,
+  "NotAvailable": true,
+  "NotAvailableTimestamp": "2019-03-19T15:55:07.5988263+01:00",
+  "NotAvailalbeScheduled": true,
+  "NoOccupancy": true,
+  "Homescreen": "sample string 9",
+  "AppNotifications": 64,
+  "SoundAlarm": "sample string 11",
+  "SoundInfo": "sample string 12",
+  "SoundUnderstaffing": "sample string 13",
+  "SchedulerDays": {
+    "$id": "2",
+    "2019-03-19T15:55:07.5988263+01:00": {
+      "$id": "3",
+      "Hour0": true,
+      "Hour1": true,
+      "Hour2": true,
+      "Hour3": true,
+      "Hour4": true,
+      "Hour5": true,
+      "Hour6": true,
+      "Hour7": true,
+      "Hour8": true,
+      "Hour9": true,
+      "Hour10": true,
+      "Hour11": true,
+      "Hour12": true,
+      "Hour13": true,
+      "Hour14": true,
+      "Hour15": true,
+      "Hour16": true,
+      "Hour17": true,
+      "Hour18": true,
+      "Hour19": true,
+      "Hour20": true,
+      "Hour21": true,
+      "Hour22": true,
+      "Hour23": true
+    }
+  },
+  "ConsignmentAppointments": [
+    {
+      "$id": "4",
+      "ServiceFunctionID": 1,
+      "Start": "2019-03-19T15:55:07.5988263+01:00",
+      "Stop": "2019-03-19T15:55:07.5988263+01:00"
+    },
+    {
+      "$ref": "4"
+    }
+  ]
+}
