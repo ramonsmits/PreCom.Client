@@ -10,9 +10,9 @@ namespace PreCom
 {
     public class PreComClient
     {
-        const string UserAgent = "PreComClient/1.0";
         const string UrlBase = "https://pre-com.nl/Mobile/";
-        readonly JsonSerializer serializer = JsonSerializer.CreateDefault();
+        static readonly JsonSerializer Serializer = JsonSerializer.CreateDefault();
+        readonly string UserAgent = "PreComClient/1.1 (https://github.com/ramonsmits/PreCom.Client) ";
         readonly HttpClient httpClient;
 
         public static readonly string[] HourKeys = GenerateHourKeys();
@@ -24,9 +24,10 @@ namespace PreCom
             return hourKeys;
         }
 
-
-        public PreComClient(HttpClient httpClient)
+        public PreComClient(HttpClient httpClient, string userAgentSuffix)
         {
+            UserAgent += userAgentSuffix;
+
             this.httpClient = httpClient;
             httpClient.DefaultRequestHeaders.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -50,7 +51,7 @@ namespace PreCom
             using (var sr = new StreamReader(stream))
             using (var reader = new JsonTextReader(sr))
             {
-                var output = serializer.Deserialize<LoginResponse>(reader);
+                var output = Serializer.Deserialize<LoginResponse>(reader);
                 httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {output.access_token}");
                 return output;
             }
@@ -84,10 +85,17 @@ namespace PreCom
         async Task<T> Get<T>(string url)
         {
             using (var stream = await httpClient.GetStreamAsync(UrlBase + url).ConfigureAwait(false))
-            using (var sr = new StreamReader(stream))
+            {
+                return Deserialize<T>(stream);
+            }
+        }
+
+        static T Deserialize<T>(Stream data)
+        {
+            using (var sr = new StreamReader(data))
             using (var reader = new JsonTextReader(sr))
             {
-                return serializer.Deserialize<T>(reader);
+                return Serializer.Deserialize<T>(reader);
             }
         }
     }
