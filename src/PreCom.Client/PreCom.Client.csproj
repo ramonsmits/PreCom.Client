@@ -1,7 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- AssemblyFileVersionAttribute -->
+    <FileVersion>1.0.0</FileVersion>
+    <!-- AssemblyInformationalVersionAttribute -->
+    <Version>$(FileVersion)</Version>
+    <!-- AssemblyVersionAttribute -->
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <!-- Nuget -->
+    <PackageVersion>$(Version)</PackageVersion>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>PreCom.Client</PackageId>
+    <Company>https://github.com/ramonsmits</Company>
+    <Authors>ramonsmits</Authors>
+    <Copyright>Copyright 2019 (c) Ramon Smits</Copyright>
+    <Description>A simple client to access the Pre-COM Mobile API at http://www.pre-com.nl/Mobile</Description>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageProjectUrl>https://github.com/ramonsmits/PreCom.Client/blob/$(PackageVersion)</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/ramonsmits/PreCom.Client/blob/$(PackageVersion)/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/ramonsmits/PreCom.Client</RepositoryUrl>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,3 +30,5 @@
   </ItemGroup>
 
 </Project>
+
+
