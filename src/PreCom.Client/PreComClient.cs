@@ -82,11 +82,44 @@ namespace PreCom
             return Get<Group>($"api/Group/GetAllFunctions?groupID={groupID}&date={date:s}");
         }
 
+        public Task<Receiver> GetReceivers()
+        {
+            return Get<Receiver>($"api/Msg/GetReceivers");
+        }
+
+        public Task<Template> GetTemplates()
+        {
+            return Get<Template>($"api/Msg/GetTemplates");
+        }
+
+        public Task<SendMessageResponse> SendMessage(SendMessageRequest msg)
+        {
+            return Post<SendMessageResponse, SendMessageRequest>($"api/Msg/SendMessage", msg);
+        }
+
         async Task<T> Get<T>(string url)
         {
             using (var stream = await httpClient.GetStreamAsync(UrlBase + url).ConfigureAwait(false))
             {
                 return Deserialize<T>(stream);
+            }
+        }
+
+        async Task<T> Post<T,K>(string url, K value)
+        {
+            using(var s = new MemoryStream())
+            using (var sw = new StreamWriter(s, System.Text.Encoding.UTF8, 1024, true))
+            using (var tw = new JsonTextWriter(sw) { Formatting = Formatting.None })
+            {
+                Serializer.Serialize(tw, value);
+                tw.Flush();
+                s.Seek(0, SeekOrigin.Begin);
+                using (var content = new StreamContent(s)) 
+                {
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                    var response = await httpClient.PostAsync(UrlBase + url, content).ConfigureAwait(false);
+                    return Deserialize<T>(await response.Content.ReadAsStreamAsync());
+                }
             }
         }
 
@@ -99,4 +132,20 @@ namespace PreCom
             }
         }
     }
+}
+
+public class SendMessageRequest
+{
+    public int SendBy { get; set; } = 1;
+    public bool Priority {get;set;} = true;
+    public bool Response { get; set; } = true;
+    public int CalculateGroupID { get; set; }
+    public DateTime ValidFrom { get; set; }//"2019-04-13T10:33:15.1801756+02:00"
+    public string Message { get; set; }
+    public List<Receiver> Receivers { get; set; }
+}
+
+public class SendMessageResponse
+{
+
 }
