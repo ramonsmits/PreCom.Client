@@ -17,16 +17,16 @@
     <Description>A simple client to access the Pre-COM Mobile API at http://www.pre-com.nl/Mobile</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://github.com/ramonsmits/PreCom.Client/blob/$(PackageVersion)</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/ramonsmits/PreCom.Client/blob/$(PackageVersion)/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/ramonsmits/PreCom.Client</RepositoryUrl>
-
+    <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
 </Project>
