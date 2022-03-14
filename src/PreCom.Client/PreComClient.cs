@@ -120,12 +120,23 @@ namespace PreCom
         protected virtual async Task<T> ProcessResponse<T>(string url, HttpResponseMessage response)
         {
             response.EnsureSuccessStatusCode();
-            return await DeserializeResponse<T>(response);
+            using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+#if DIAGNOSTICS
+            var path = MD5Helper.CreateMD5(url) + ".json";
+            File.WriteAllText(path + ".txt", url);
+            using var fs = new FileStream(path, FileMode.CreateNew);
+            await Console.Out.WriteLineAsync($"{url} => {path}");
+            await response.Content.CopyToAsync(fs);
+            fs.Position = 0;
+
+            return Deserialize<T>(fs);
+#else
+            return Deserialize<T>(stream);
+#endif
         }
 
-        async Task<T> DeserializeResponse<T>(HttpResponseMessage response)
+        protected T Deserialize<T>(Stream stream)
         {
-            using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
             using var sr = new StreamReader(stream);
             using var reader = new JsonTextReader(sr);
             return Serializer.Deserialize<T>(reader);
