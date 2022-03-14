@@ -51,8 +51,10 @@ namespace PreCom
             using var sr = new StreamReader(stream);
             using var reader = new JsonTextReader(sr);
 
+            var headers = httpClient.DefaultRequestHeaders;
             var output = Serializer.Deserialize<LoginResponse>(reader);
-            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {output.access_token}");
+            _ = headers.Remove("Authorization");
+            headers.Add("Authorization", $"Bearer {output.access_token}");
             return output;
         }
 
