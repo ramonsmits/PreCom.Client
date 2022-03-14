@@ -13,11 +13,11 @@ namespace PreCom
     {
         const string UrlBase = "https://pre-com.nl/Mobile/";
         static readonly JsonSerializer Serializer = JsonSerializer.CreateDefault();
-        readonly string UserAgent = "PreComClient/1.2 (https://github.com/ramonsmits/PreCom.Client) ";
+        readonly string UserAgent = "PreComClient/2.0 (https://github.com/ramonsmits/PreCom.Client) ";
         readonly HttpClient httpClient;
 
         public static readonly Dictionary<TimeSpan,string> TimeSlots = GenerateTimeSlots();
-        public static readonly TimeSpan SlotSize = TimeSpan.FromMinutes(60);
+        public static readonly TimeSpan SlotSize = TimeSpan.FromMinutes(15);
 
         public static string MapToKey(DateTimeOffset timestamp)
         {
@@ -101,7 +101,7 @@ namespace PreCom
         public Task<Group> GetAllFunctions(long groupID, DateTime date, CancellationToken cancellationToken = default)
         {
             OnlyDate(date, nameof(date));
-            return Get<Group>($"api/Group/GetAllFunctions?groupID={groupID}&date={date:s}", cancellationToken);
+            return Get<Group>($"api/v2/Group/GetAllFunctions?groupID={groupID}&date={date:s}", cancellationToken);
         }
 
         public Task<MsgOut[]> GetMessages(string controlID = default, CancellationToken cancellationToken = default)
@@ -123,6 +123,7 @@ namespace PreCom
 
         protected virtual async Task<T> Get<T>(string url, CancellationToken cancellationToken)
         {
+
             using var response = await httpClient.GetAsync(UrlBase + url, cancellationToken).ConfigureAwait(false);
             return await ProcessResponse<T>(url, response).ConfigureAwait(false);
         }
