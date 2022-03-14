@@ -16,12 +16,28 @@ namespace PreCom
         readonly string UserAgent = "PreComClient/1.2 (https://github.com/ramonsmits/PreCom.Client) ";
         readonly HttpClient httpClient;
 
-        public static readonly string[] HourKeys = GenerateHourKeys();
+        public static readonly Dictionary<TimeSpan,string> TimeSlots = GenerateTimeSlots();
+        public static readonly TimeSpan SlotSize = TimeSpan.FromMinutes(60);
 
-        static string[] GenerateHourKeys()
+        public static string MapToKey(DateTimeOffset timestamp)
         {
-            var hourKeys = new string[24];
-            for (var i = 0; i < 24; i++) hourKeys[i] = "Hour" + i;
+            return TimeSlots[timestamp.RoundDown(SlotSize).TimeOfDay];
+        }
+
+        static Dictionary<TimeSpan, string> GenerateTimeSlots()
+        {
+            var hourKeys = new Dictionary<TimeSpan, string>();
+
+            var t = TimeSpan.Zero;
+
+            while(t<new TimeSpan(1,0,0,0))
+            {
+                hourKeys[t] = "Hour" + t.Hours;
+                hourKeys[t + new TimeSpan(0, 15, 0)] = "Hour" + t.Hours + "_15";
+                hourKeys[t + new TimeSpan(0, 30, 0)] = "Hour" + t.Hours + "_30";
+                hourKeys[t + new TimeSpan(0, 45, 0)] = "Hour" + t.Hours + "_45";
+                t = t + new TimeSpan(1, 0, 0);
+            }
             return hourKeys;
         }
 
