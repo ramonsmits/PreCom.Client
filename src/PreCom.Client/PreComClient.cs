@@ -16,7 +16,7 @@ namespace PreCom
         readonly string UserAgent = "PreComClient/2.0 (https://github.com/ramonsmits/PreCom.Client) ";
         readonly HttpClient httpClient;
 
-        public static readonly Dictionary<TimeSpan,string> TimeSlots = GenerateTimeSlots();
+        static readonly Dictionary<TimeSpan,string> TimeSlots = GenerateTimeSlots();
         public static readonly TimeSpan SlotSize = TimeSpan.FromMinutes(15);
 
         public static string MapToKey(DateTimeOffset timestamp)
@@ -123,7 +123,6 @@ namespace PreCom
 
         protected virtual async Task<T> Get<T>(string url, CancellationToken cancellationToken)
         {
-
             using var response = await httpClient.GetAsync(UrlBase + url, cancellationToken).ConfigureAwait(false);
             return await ProcessResponse<T>(url, response).ConfigureAwait(false);
         }
@@ -138,18 +137,7 @@ namespace PreCom
         {
             response.EnsureSuccessStatusCode();
             using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-#if DIAGNOSTICS
-            var path = MD5Helper.CreateMD5(url) + ".json";
-            File.WriteAllText(path + ".txt", url);
-            using var fs = new FileStream(path, FileMode.CreateNew);
-            await Console.Out.WriteLineAsync($"{url} => {path}");
-            await response.Content.CopyToAsync(fs);
-            fs.Position = 0;
-
-            return Deserialize<T>(fs);
-#else
             return Deserialize<T>(stream);
-#endif
         }
 
         protected T Deserialize<T>(Stream stream)
