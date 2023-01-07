@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -11,12 +12,13 @@ namespace PreCom
 {
     public class PreComClient
     {
+        static readonly ActivitySource ActivitySource = new("PreComClient");
         const string UrlBase = "https://pre-com.nl/Mobile/";
         static readonly JsonSerializer Serializer = JsonSerializer.CreateDefault();
         readonly string UserAgent = "PreComClient/2.0 (https://github.com/ramonsmits/PreCom.Client) ";
         readonly HttpClient httpClient;
 
-        static readonly Dictionary<TimeSpan,string> TimeSlots = GenerateTimeSlots();
+        static readonly Dictionary<TimeSpan, string> TimeSlots = GenerateTimeSlots();
         public static readonly TimeSpan SlotSize = TimeSpan.FromMinutes(15);
 
         public static string MapToKey(DateTimeOffset timestamp)
@@ -30,7 +32,7 @@ namespace PreCom
 
             var t = TimeSpan.Zero;
 
-            while(t<new TimeSpan(1,0,0,0))
+            while (t < new TimeSpan(1, 0, 0, 0))
             {
                 hourKeys[t] = "Hour" + t.Hours;
                 hourKeys[t + new TimeSpan(0, 15, 0)] = "Hour" + t.Hours + "_15";
@@ -58,6 +60,7 @@ namespace PreCom
                 new KeyValuePair<string, string>("username", username),
                 new KeyValuePair<string, string>("password", password)
             };
+            using var activity = ActivitySource.StartActivity("Login", ActivityKind.Client);
 
             var content = new FormUrlEncodedContent(nvc);
             var response = await httpClient.PostAsync(UrlBase + "Token", content).ConfigureAwait(false);
@@ -76,6 +79,7 @@ namespace PreCom
 
         public Task<User> GetUserInfo(CancellationToken cancellationToken = default)
         {
+            using var activity = ActivitySource.StartActivity("GetUserInfo", ActivityKind.Client);
             return Get<User>(UrlBase + "api/User/GetUserInfo", cancellationToken);
         }
 
@@ -83,11 +87,13 @@ namespace PreCom
         {
             OnlyDate(from, nameof(from));
             OnlyDate(to, nameof(to));
+            using var activity = ActivitySource.StartActivity("GetUserSchedulerAppointments", ActivityKind.Client);
             return Get<SchedulerAppointment[]>($"api/User/GetUserSchedulerAppointments?from={from:s}&to={to:s}", cancellationToken);
         }
 
         public Task<Group[]> GetAllUserGroups(CancellationToken cancellationToken = default)
         {
+            using var activity = ActivitySource.StartActivity("GetAllUserGroups", ActivityKind.Client);
             return Get<Group[]>($"api/Group/GetAllUserGroups", cancellationToken);
         }
 
@@ -95,12 +101,14 @@ namespace PreCom
         {
             OnlyDate(from, nameof(from));
             OnlyDate(to, nameof(to));
+            using var activity = ActivitySource.StartActivity("GetOccupancyLevels", ActivityKind.Client);
             return Get<Dictionary<DateTime, int>>($"api/Group/GetOccupancyLevels?groupID={groupID}&from={from:s}&to={to:s}", cancellationToken);
         }
 
         public Task<Group> GetAllFunctions(long groupID, DateTime date, CancellationToken cancellationToken = default)
         {
             OnlyDate(date, nameof(date));
+            using var activity = ActivitySource.StartActivity("GetAllFunctions", ActivityKind.Client);
             return Get<Group>($"api/v2/Group/GetAllFunctions?groupID={groupID}&date={date:s}", cancellationToken);
         }
 
@@ -108,16 +116,19 @@ namespace PreCom
         {
             var url = "api/User/GetMessages";
             if (controlID != default) url += $"?controlID={controlID}";
+            using var activity = ActivitySource.StartActivity("GetAllFunctions", ActivityKind.Client);
             return Get<MsgOut[]>(url, cancellationToken);
         }
 
         public Task<MsgInLog[]> GetAlarmMessages(int msgInID = default, int previousOrNext = default, CancellationToken cancellationToken = default)
         {
+            using var activity = ActivitySource.StartActivity("GetAlarmMessages", ActivityKind.Client);
             return Get<MsgInLog[]>($"api/User/GetAlarmMessages?msgInID={msgInID}&previousOrNext={previousOrNext}", cancellationToken);
         }
 
         public async Task SetAvailabilityForAlarmMessage(int msgInID, bool available, CancellationToken cancellationToken = default)
         {
+            using var activity = ActivitySource.StartActivity("SetAvailabilityForAlarmMessage", ActivityKind.Client);
             _ = await Post<object>($"api/User/SetAvailabilityForAlarmMessage?msgInID={msgInID}&available={available}", cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
