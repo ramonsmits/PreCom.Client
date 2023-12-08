@@ -18,7 +18,7 @@ namespace PreCom
         readonly string UserAgent = "PreComClient/2.0 (https://github.com/ramonsmits/PreCom.Client) ";
         readonly HttpClient httpClient;
 
-        static readonly Dictionary<TimeSpan, string> TimeSlots = GenerateTimeSlots();
+        public static readonly Dictionary<TimeSpan, string> TimeSlots = GenerateTimeSlots();
         public static readonly TimeSpan SlotSize = TimeSpan.FromMinutes(15);
 
         public static string MapToKey(DateTimeOffset timestamp)
@@ -77,53 +77,60 @@ namespace PreCom
             return output;
         }
 
-        public Task<User> GetUserInfo(CancellationToken cancellationToken = default)
+        public async Task<User> GetUserInfo(CancellationToken cancellationToken = default)
         {
             using var activity = ActivitySource.StartActivity("GetUserInfo", ActivityKind.Client);
-            return Get<User>(UrlBase + "api/User/GetUserInfo", cancellationToken);
+            return await Get<User>(UrlBase + "api/User/GetUserInfo", cancellationToken);
         }
 
-        public Task<SchedulerAppointment[]> GetUserSchedulerAppointments(DateTime from, DateTime to, CancellationToken cancellationToken = default)
+        public async Task<SchedulerAppointment[]> GetUserSchedulerAppointments(DateTime from, DateTime to, CancellationToken cancellationToken = default)
         {
             OnlyDate(from, nameof(from));
             OnlyDate(to, nameof(to));
             using var activity = ActivitySource.StartActivity("GetUserSchedulerAppointments", ActivityKind.Client);
-            return Get<SchedulerAppointment[]>($"api/User/GetUserSchedulerAppointments?from={from:s}&to={to:s}", cancellationToken);
+            return await Get<SchedulerAppointment[]>($"api/User/GetUserSchedulerAppointments?from={from:s}&to={to:s}", cancellationToken);
         }
 
-        public Task<Group[]> GetAllUserGroups(CancellationToken cancellationToken = default)
+        public async Task<Group[]> GetAllUserGroups(CancellationToken cancellationToken = default)
         {
             using var activity = ActivitySource.StartActivity("GetAllUserGroups", ActivityKind.Client);
-            return Get<Group[]>($"api/Group/GetAllUserGroups", cancellationToken);
+            return await Get<Group[]>($"api/Group/GetAllUserGroups", cancellationToken);
         }
 
-        public Task<Dictionary<DateTime, int>> GetOccupancyLevels(long groupID, DateTime from, DateTime to, CancellationToken cancellationToken = default)
+        public async Task<Dictionary<DateTime, int>> GetOccupancyLevels(long groupID, DateTime from, DateTime to, CancellationToken cancellationToken = default)
         {
             OnlyDate(from, nameof(from));
             OnlyDate(to, nameof(to));
             using var activity = ActivitySource.StartActivity("GetOccupancyLevels", ActivityKind.Client);
-            return Get<Dictionary<DateTime, int>>($"api/Group/GetOccupancyLevels?groupID={groupID}&from={from:s}&to={to:s}", cancellationToken);
+            return await Get<Dictionary<DateTime, int>>($"api/Group/GetOccupancyLevels?groupID={groupID}&from={from:s}&to={to:s}", cancellationToken);
         }
 
-        public Task<Group> GetAllFunctions(long groupID, DateTime date, CancellationToken cancellationToken = default)
+        public async Task<Group> GetAllFunctions(long groupID, DateTime date, CancellationToken cancellationToken = default)
         {
             OnlyDate(date, nameof(date));
             using var activity = ActivitySource.StartActivity("GetAllFunctions", ActivityKind.Client);
-            return Get<Group>($"api/v2/Group/GetAllFunctions?groupID={groupID}&date={date:s}", cancellationToken);
+            return await Get<Group>($"api/v2/Group/GetAllFunctions?groupID={groupID}&date={date:s}", cancellationToken);
         }
 
-        public Task<MsgOut[]> GetMessages(string controlID = default, CancellationToken cancellationToken = default)
+        public async Task<byte[]> GetAllFunctionsRaw(long groupID, DateTime date, CancellationToken cancellationToken = default)
+        {
+            OnlyDate(date, nameof(date));
+            using var activity = ActivitySource.StartActivity("GetAllFunctions", ActivityKind.Client);
+            return await Get($"api/v2/Group/GetAllFunctions?groupID={groupID}&date={date:s}", cancellationToken);
+        }
+
+        public async Task<MsgOut[]> GetMessages(string controlID = default, CancellationToken cancellationToken = default)
         {
             var url = "api/User/GetMessages";
             if (controlID != default) url += $"?controlID={controlID}";
             using var activity = ActivitySource.StartActivity("GetAllFunctions", ActivityKind.Client);
-            return Get<MsgOut[]>(url, cancellationToken);
+            return await Get<MsgOut[]>(url, cancellationToken);
         }
 
-        public Task<MsgInLog[]> GetAlarmMessages(int msgInID = default, int previousOrNext = default, CancellationToken cancellationToken = default)
+        public async Task<MsgInLog[]> GetAlarmMessages(int msgInID = default, int previousOrNext = default, CancellationToken cancellationToken = default)
         {
             using var activity = ActivitySource.StartActivity("GetAlarmMessages", ActivityKind.Client);
-            return Get<MsgInLog[]>($"api/User/GetAlarmMessages?msgInID={msgInID}&previousOrNext={previousOrNext}", cancellationToken);
+            return await Get<MsgInLog[]>($"api/User/GetAlarmMessages?msgInID={msgInID}&previousOrNext={previousOrNext}", cancellationToken);
         }
 
         public async Task SetAvailabilityForAlarmMessage(int msgInID, bool available, CancellationToken cancellationToken = default)
@@ -138,6 +145,12 @@ namespace PreCom
             return await ProcessResponse<T>(url, response).ConfigureAwait(false);
         }
 
+        protected virtual async Task<byte[]> Get(string url, CancellationToken cancellationToken)
+        {
+            using var response = await httpClient.GetAsync(UrlBase + url, cancellationToken).ConfigureAwait(false);
+            return await ProcessResponse(url, response).ConfigureAwait(false);
+        }
+
         protected virtual async Task<T> Post<T>(string url, HttpContent content = default, CancellationToken cancellationToken = default)
         {
             using var response = await httpClient.PostAsync(UrlBase + url, content, cancellationToken).ConfigureAwait(false);
@@ -149,6 +162,13 @@ namespace PreCom
             response.EnsureSuccessStatusCode();
             using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
             return Deserialize<T>(stream);
+        }
+
+        protected virtual async Task<byte[]> ProcessResponse(string url, HttpResponseMessage response)
+        {
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false); ;
         }
 
         protected T Deserialize<T>(Stream stream)
